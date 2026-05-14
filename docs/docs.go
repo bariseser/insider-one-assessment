@@ -653,6 +653,7 @@ const docTemplate = `{
                         "email",
                         "push"
                     ],
+                    "example": "sms",
                     "allOf": [
                         {
                             "$ref": "#/definitions/insider-one-assessment_internal_model.NotificationChannel"
@@ -660,6 +661,7 @@ const docTemplate = `{
                     ]
                 },
                 "content": {
+                    "example": "Hello {{name}}, your code is {{code}}",
                     "type": "string"
                 },
                 "priority": {
@@ -668,6 +670,7 @@ const docTemplate = `{
                         "normal",
                         "low"
                     ],
+                    "example": "high",
                     "allOf": [
                         {
                             "$ref": "#/definitions/insider-one-assessment_internal_model.NotificationPriority"
@@ -675,15 +678,22 @@ const docTemplate = `{
                     ]
                 },
                 "recipient": {
+                    "example": "+905551234567",
                     "type": "string"
                 },
                 "scheduled_at": {
+                    "example": "2026-05-14T22:22:00+03:00",
                     "type": "string"
                 },
                 "template_id": {
+                    "example": "995a9705-226b-4d8b-bc42-5b77a08ac7bd",
                     "type": "string"
                 },
                 "variables": {
+                    "example": {
+                        "code": "123456",
+                        "name": "Baris"
+                    },
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
