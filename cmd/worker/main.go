@@ -45,7 +45,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
-	defer dbClient.Close()
+	defer func() {
+		if err := dbClient.Close(); err != nil {
+			log.Printf("close db: %v", err)
+		}
+	}()
 
 	if err := dbClient.Ping(ctx); err != nil {
 		log.Fatalf("ping db: %v", err)
@@ -55,7 +59,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("connect rabbitmq: %v", err)
 	}
-	defer queueClient.Close()
+	defer func() {
+		if err := queueClient.Close(); err != nil {
+			log.Printf("close rabbitmq: %v", err)
+		}
+	}()
 
 	logger := logging.New(cfg.LogLevel)
 	repo := repository.NewNotificationRepository(dbClient)

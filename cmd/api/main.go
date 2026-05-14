@@ -47,7 +47,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
-	defer dbClient.Close()
+	defer func() {
+		if err := dbClient.Close(); err != nil {
+			log.Printf("close db: %v", err)
+		}
+	}()
 
 	if err := dbClient.Ping(ctx); err != nil {
 		log.Fatalf("ping db: %v", err)
