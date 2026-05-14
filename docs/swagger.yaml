@@ -60,6 +60,10 @@ definitions:
         type: string
       template_id:
         type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
     required:
     - channel
     - recipient
@@ -93,7 +97,7 @@ definitions:
     type: object
   insider-one-assessment_internal_dto_resource.ListNotificationsResponse:
     properties:
-      items:
+      notifications:
         items:
           $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
         type: array

@@ -682,6 +682,12 @@ const docTemplate = `{
                 },
                 "template_id": {
                     "type": "string"
+                },
+                "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -731,7 +737,7 @@ const docTemplate = `{
         "insider-one-assessment_internal_dto_resource.ListNotificationsResponse": {
             "type": "object",
             "properties": {
-                "items": {
+                "notifications": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource"
