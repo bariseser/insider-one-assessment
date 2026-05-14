@@ -292,7 +292,9 @@ func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit
 	if err != nil {
 		return nil, fmt.Errorf("begin outbox tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	rows, err := tx.QueryContext(ctx, `
 		SELECT id, aggregate_type, aggregate_id, event_type, payload, available_at, created_at
