@@ -1,0 +1,652 @@
+basePath: /
+definitions:
+  insider-one-assessment_internal_dto_request.CreateNotificationRequest:
+    properties:
+      notification:
+        $ref: '#/definitions/insider-one-assessment_internal_dto_request.NotificationItem'
+    required:
+    - notification
+    type: object
+  insider-one-assessment_internal_dto_request.CreateNotificationsRequest:
+    properties:
+      notifications:
+        items:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_request.NotificationItem'
+        maxItems: 1000
+        minItems: 1
+        type: array
+    required:
+    - notifications
+    type: object
+  insider-one-assessment_internal_dto_request.CreateTemplateRequest:
+    properties:
+      channel:
+        allOf:
+        - $ref: '#/definitions/insider-one-assessment_internal_model.NotificationChannel'
+        enum:
+        - sms
+        - email
+        - push
+      content:
+        type: string
+      name:
+        type: string
+    required:
+    - channel
+    - content
+    - name
+    type: object
+  insider-one-assessment_internal_dto_request.NotificationItem:
+    properties:
+      channel:
+        allOf:
+        - $ref: '#/definitions/insider-one-assessment_internal_model.NotificationChannel'
+        enum:
+        - sms
+        - email
+        - push
+      content:
+        type: string
+      priority:
+        allOf:
+        - $ref: '#/definitions/insider-one-assessment_internal_model.NotificationPriority'
+        enum:
+        - high
+        - normal
+        - low
+      recipient:
+        type: string
+      scheduled_at:
+        type: string
+      template_id:
+        type: string
+    required:
+    - channel
+    - recipient
+    type: object
+  insider-one-assessment_internal_dto_request.UpdateTemplateRequest:
+    properties:
+      channel:
+        allOf:
+        - $ref: '#/definitions/insider-one-assessment_internal_model.NotificationChannel'
+        enum:
+        - sms
+        - email
+        - push
+      content:
+        type: string
+      name:
+        type: string
+    type: object
+  insider-one-assessment_internal_dto_resource.CreateNotificationsResponse:
+    properties:
+      batch_id:
+        type: string
+      notification_ids:
+        items:
+          type: string
+        type: array
+      replayed:
+        type: boolean
+      status:
+        $ref: '#/definitions/insider-one-assessment_internal_model.NotificationStatus'
+    type: object
+  insider-one-assessment_internal_dto_resource.ListNotificationsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  insider-one-assessment_internal_dto_resource.NotificationBatchResource:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      idempotency_key:
+        type: string
+      notifications:
+        items:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
+        type: array
+      total_count:
+        type: integer
+    type: object
+  insider-one-assessment_internal_dto_resource.NotificationResource:
+    properties:
+      attempt_count:
+        type: integer
+      batch_id:
+        type: string
+      cancelled_at:
+        type: string
+      channel:
+        $ref: '#/definitions/insider-one-assessment_internal_model.NotificationChannel'
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      last_error:
+        type: string
+      max_attempts:
+        type: integer
+      next_attempt_at:
+        type: string
+      priority:
+        $ref: '#/definitions/insider-one-assessment_internal_model.NotificationPriority'
+      provider_message_id:
+        type: string
+      recipient:
+        type: string
+      scheduled_at:
+        type: string
+      status:
+        $ref: '#/definitions/insider-one-assessment_internal_model.NotificationStatus'
+      template_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  insider-one-assessment_internal_dto_resource.TemplateResource:
+    properties:
+      channel:
+        $ref: '#/definitions/insider-one-assessment_internal_model.NotificationChannel'
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  insider-one-assessment_internal_dto_resource.TemplateResponse:
+    properties:
+      template:
+        $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplateResource'
+    type: object
+  insider-one-assessment_internal_dto_resource.TemplatesResponse:
+    properties:
+      templates:
+        items:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplateResource'
+        type: array
+    type: object
+  insider-one-assessment_internal_model.NotificationChannel:
+    enum:
+    - sms
+    - email
+    - push
+    type: string
+    x-enum-varnames:
+    - ChannelSMS
+    - ChannelEmail
+    - ChannelPush
+  insider-one-assessment_internal_model.NotificationPriority:
+    enum:
+    - high
+    - normal
+    - low
+    type: string
+    x-enum-varnames:
+    - PriorityHigh
+    - PriorityNormal
+    - PriorityLow
+  insider-one-assessment_internal_model.NotificationStatus:
+    enum:
+    - pending
+    - queued
+    - processing
+    - sent
+    - failed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusQueued
+    - StatusProcessing
+    - StatusSent
+    - StatusFailed
+    - StatusCancelled
+  insider-one-assessment_internal_utils.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  insider-one-assessment_internal_utils.ErrorSchema:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  insider-one-assessment_internal_utils.HTTPErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorSchema'
+      timestamp:
+        type: integer
+    type: object
+  internal_handler.MetricSnapshot:
+    properties:
+      average_latency_ms:
+        type: number
+      cancelled_count:
+        type: integer
+      counts_by_channel:
+        additionalProperties:
+          type: integer
+        type: object
+      failure_count:
+        type: integer
+      generated_at:
+        type: string
+      pending_count:
+        type: integer
+      processing_count:
+        type: integer
+      queue_depth:
+        type: integer
+      queued_count:
+        type: integer
+      success_count:
+        type: integer
+    type: object
+host: 127.0.0.1:18080
+info:
+  contact: {}
+  description: Event-driven notification system assessment API.
+  title: Insider One Assessment Notification API
+  version: "1.0"
+paths:
+  /batches:
+    post:
+      consumes:
+      - application/json
+      description: Creates one or more notifications in a batch and stores matching
+        outbox events for async dispatch.
+      parameters:
+      - description: Optional idempotency key for safe retries
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Create notification batch request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_request.CreateNotificationsRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.CreateNotificationsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: Create notification batch
+      tags:
+      - batches
+  /batches/{id}:
+    get:
+      description: Returns a notification batch with its notifications.
+      parameters:
+      - description: Batch ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationBatchResource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: Get notification batch
+      tags:
+      - batches
+  /health:
+    get:
+      description: Returns API health status.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /metrics:
+    get:
+      description: Returns a JSON metrics snapshot for queue depth, delivery outcomes,
+        and latency.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.MetricSnapshot'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+      summary: Metrics snapshot
+      tags:
+      - metrics
+  /notifications:
+    get:
+      description: Lists notifications with filtering and pagination.
+      parameters:
+      - description: Notification status
+        in: query
+        name: status
+        type: string
+      - description: Notification channel
+        in: query
+        name: channel
+        type: string
+      - description: Created at lower bound (RFC3339)
+        in: query
+        name: date_from
+        type: string
+      - description: Created at upper bound (RFC3339)
+        in: query
+        name: date_to
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.ListNotificationsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: List notifications
+      tags:
+      - notifications
+    post:
+      consumes:
+      - application/json
+      description: Creates a single notification and stores a matching outbox event
+        for async dispatch.
+      parameters:
+      - description: Optional idempotency key for safe retries
+        in: header
+        name: Idempotency-Key
+        type: string
+      - description: Create notification request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_request.CreateNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: Create notification
+      tags:
+      - notifications
+  /notifications/{id}:
+    get:
+      description: Returns a single notification by ID.
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: Get notification
+      tags:
+      - notifications
+  /notifications/{id}/cancel:
+    post:
+      description: Cancels a pending or queued notification.
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.NotificationResource'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.ErrorResponse'
+      summary: Cancel notification
+      tags:
+      - notifications
+  /templates:
+    get:
+      description: Returns all templates.
+      parameters:
+      - description: Template channel
+        in: query
+        name: channel
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplatesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+      summary: List templates
+      tags:
+      - templates
+    post:
+      consumes:
+      - application/json
+      description: Creates a message template that can be referenced by notifications.
+      parameters:
+      - description: Create template request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_request.CreateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+      summary: Create template
+      tags:
+      - templates
+  /templates/{id}:
+    get:
+      description: Returns a template by ID.
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+      summary: Get template
+      tags:
+      - templates
+    patch:
+      consumes:
+      - application/json
+      description: Updates a template by ID.
+      parameters:
+      - description: Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update template request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/insider-one-assessment_internal_dto_request.UpdateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_dto_resource.TemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/insider-one-assessment_internal_utils.HTTPErrorResponse'
+      summary: Update template
+      tags:
+      - templates
+schemes:
+- http
+swagger: "2.0"

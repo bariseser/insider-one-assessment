@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Insider One Assessment Postgres",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "insider_one_assessment",
+      "Username": "postgres",
+      "Password": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}
