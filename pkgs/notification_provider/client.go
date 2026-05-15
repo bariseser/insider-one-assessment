@@ -109,7 +109,9 @@ func (c *notificationClient) Send(ctx context.Context, req Request) (Result, err
 		span.SetStatus(codes.Error, err.Error())
 		return Result{}, fmt.Errorf("send provider request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {

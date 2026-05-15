@@ -148,11 +148,6 @@ Terminal states:
 - `failed`
 - `cancelled`
 
-Important semantic note:
-
-- `sent` means **provider accepted**
-- it does **not** mean confirmed end-user delivery, because the assessment provider only exposes an acceptance-style response
-
 ## Delivery and Retry Policy
 
 The assessment explicitly left retry and delivery behavior to candidate design. The implementation makes that behavior explicit.

@@ -219,8 +219,8 @@ func (w *Worker) processDelivery(ctx context.Context, delivery amqp.Delivery) er
 		ResponseBody:       stringPtr(result.ResponseBody),
 	}
 
-	switch {
-	case result.StatusCode == httpStatusAccepted:
+	switch result.StatusCode {
+	case httpStatusAccepted:
 		_, err = w.deliveryRepo.MarkNotificationSent(ctx, notification.ID.String(), attemptResult, result.Response.MessageID, time.Now().UTC())
 		if err == nil {
 			w.logger.Info("notification sent",

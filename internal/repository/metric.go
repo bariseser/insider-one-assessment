@@ -48,7 +48,9 @@ func (r *metricRepository) LoadSnapshot(ctx context.Context) (*MetricSnapshot, e
 	if err != nil {
 		return nil, fmt.Errorf("load status counts: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	for rows.Next() {
 		var status string
@@ -86,7 +88,9 @@ func (r *metricRepository) LoadSnapshot(ctx context.Context) (*MetricSnapshot, e
 	if err != nil {
 		return nil, fmt.Errorf("load channel counts: %w", err)
 	}
-	defer channelRows.Close()
+	defer func() {
+		_ = channelRows.Close()
+	}()
 
 	for channelRows.Next() {
 		var channel string

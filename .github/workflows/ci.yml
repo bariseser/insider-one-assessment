@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Goğiş
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -36,9 +36,9 @@ jobs:
           git diff --exit-code docs
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: latest
+          version: v2.11.0
 
       - name: Vet
         run: go vet ./...

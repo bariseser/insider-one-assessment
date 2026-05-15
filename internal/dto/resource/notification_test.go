@@ -135,7 +135,7 @@ var _ = Describe("Notification Resource DTOs", func() {
 	Describe("ListNotificationsResponse", func() {
 		It("should marshal pagination metadata", func() {
 			resp := resourcedto.ListNotificationsResponse{
-				Items: []resourcedto.NotificationResource{
+				Notifications: []resourcedto.NotificationResource{
 					{ID: "notification-1"},
 				},
 				Page:     2,
@@ -149,7 +149,7 @@ var _ = Describe("Notification Resource DTOs", func() {
 			Expect(string(payload)).To(ContainSubstring(`"page":2`))
 			Expect(string(payload)).To(ContainSubstring(`"page_size":50`))
 			Expect(string(payload)).To(ContainSubstring(`"total":101`))
-			Expect(string(payload)).To(ContainSubstring(`"items"`))
+			Expect(string(payload)).To(ContainSubstring(`"notifications"`))
 		})
 	})
 })

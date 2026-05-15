@@ -89,7 +89,9 @@ func (r *notificationRepository) CreateNotification(ctx context.Context, idempot
 	if err != nil {
 		return nil, false, fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	now := time.Now().UTC()
 	if idempotencyKey != "" {
@@ -129,7 +131,9 @@ func (r *notificationRepository) CreateNotifications(ctx context.Context, params
 	if err != nil {
 		return model.NotificationBatch{}, nil, false, fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	batchID := uuid.New()
 	now := time.Now().UTC()
@@ -208,7 +212,9 @@ func (r *notificationRepository) GetBatchByID(ctx context.Context, id string) (*
 	if err != nil {
 		return nil, nil, fmt.Errorf("begin readonly tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	batch, notifications, _, err := r.loadBatchWithNotifications(ctx, tx, id, false)
 	if err != nil {
@@ -286,7 +292,9 @@ func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit
 	if err != nil {
 		return nil, fmt.Errorf("begin outbox tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	rows, err := tx.QueryContext(ctx, `
 		SELECT id, aggregate_type, aggregate_id, event_type, payload, available_at, created_at
@@ -299,7 +307,9 @@ func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit
 	if err != nil {
 		return nil, fmt.Errorf("select due outbox events: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	events := make([]OutboxEvent, 0, limit)
 	for rows.Next() {
@@ -324,7 +334,9 @@ func (r *notificationRepository) MarkOutboxEventPublished(ctx context.Context, e
 	if err != nil {
 		return fmt.Errorf("begin publish tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	tag, err := tx.ExecContext(ctx, `UPDATE outbox_events SET published_at = $2 WHERE id = $1 AND published_at IS NULL`, eventID, publishedAt)
 	if err != nil {
@@ -370,7 +382,9 @@ func (r *notificationRepository) MarkNotificationSent(ctx context.Context, id st
 	if err != nil {
 		return nil, fmt.Errorf("begin sent tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	row := tx.QueryRowContext(ctx, `
 		UPDATE notifications
 		SET status = $2, attempt_count = attempt_count + 1, provider_message_id = $3, last_error = NULL, next_attempt_at = NULL, updated_at = $4
@@ -398,7 +412,9 @@ func (r *notificationRepository) MarkNotificationFailed(ctx context.Context, id 
 	if err != nil {
 		return nil, fmt.Errorf("begin failed tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	row := tx.QueryRowContext(ctx, `
 		UPDATE notifications
 		SET status = $2, attempt_count = attempt_count + 1, last_error = $3, next_attempt_at = NULL, updated_at = $4
@@ -426,7 +442,9 @@ func (r *notificationRepository) ScheduleNotificationRetry(ctx context.Context, 
 	if err != nil {
 		return nil, fmt.Errorf("begin retry tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	now := time.Now().UTC()
 	row := tx.QueryRowContext(ctx, `
 		UPDATE notifications
@@ -642,7 +660,9 @@ func (r *notificationRepository) loadBatchWithNotifications(ctx context.Context,
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("load notifications: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	notifications := make([]model.Notification, 0, batch.TotalCount)
 	for rows.Next() {

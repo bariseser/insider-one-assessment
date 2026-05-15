@@ -47,34 +47,34 @@ func NewClient(amqpURL string) (IClient, error) {
 
 	channel, err := connection.Channel()
 	if err != nil {
-		connection.Close()
+		_ = connection.Close()
 		return nil, fmt.Errorf("open rabbitmq channel: %w", err)
 	}
 
 	if err := channel.ExchangeDeclare(ExchangeName, "direct", true, false, false, false, nil); err != nil {
-		channel.Close()
-		connection.Close()
+		_ = channel.Close()
+		_ = connection.Close()
 		return nil, fmt.Errorf("declare exchange: %w", err)
 	}
 
 	queue, err := channel.QueueDeclare(QueueName, true, false, false, false, nil)
 	if err != nil {
-		channel.Close()
-		connection.Close()
+		_ = channel.Close()
+		_ = connection.Close()
 		return nil, fmt.Errorf("declare queue: %w", err)
 	}
 
 	for _, routingKey := range []string{"notification.sms", "notification.email", "notification.push"} {
 		if err := channel.QueueBind(queue.Name, routingKey, ExchangeName, false, nil); err != nil {
-			channel.Close()
-			connection.Close()
+			_ = channel.Close()
+			_ = connection.Close()
 			return nil, fmt.Errorf("bind queue to %s: %w", routingKey, err)
 		}
 	}
 
 	if err := channel.Qos(100, 0, false); err != nil {
-		channel.Close()
-		connection.Close()
+		_ = channel.Close()
+		_ = connection.Close()
 		return nil, fmt.Errorf("configure qos: %w", err)
 	}
 
