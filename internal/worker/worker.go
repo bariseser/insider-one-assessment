@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
-	"sync"
 	"time"
 
 	"insider-one-assessment/internal/model"
 	"insider-one-assessment/internal/queue/rabbitmq"
+	"insider-one-assessment/internal/ratelimit"
 	"insider-one-assessment/internal/repository"
 	"insider-one-assessment/internal/tracing"
 	"insider-one-assessment/pkgs/notification_provider"
@@ -21,41 +21,37 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"golang.org/x/time/rate"
 )
 
 type Worker struct {
-	logger        *slog.Logger
-	deliveryRepo  repository.IDeliveryRepository
-	outboxRepo    repository.IOutboxRepository
-	queue         rabbitmq.IClient
-	provider      notification_provider.INotificationClient
-	publisherTick time.Duration
-	limiters      map[string]*rate.Limiter
-	mu            sync.Mutex
-	rng           *rand.Rand
+	logger           *slog.Logger
+	deliveryRepo     repository.IDeliveryRepository
+	outboxRepo       repository.IOutboxRepository
+	queue            rabbitmq.IClient
+	provider         notification_provider.INotificationClient
+	publisherTick    time.Duration
+	rateLimiter      ratelimit.Limiter
+	channelRateLimit int
+	rng              *rand.Rand
 }
 
 var tracer = otel.Tracer("insider-one-assessment/worker")
 
-func New(logger *slog.Logger, deliveryRepo repository.IDeliveryRepository, outboxRepo repository.IOutboxRepository, queue rabbitmq.IClient, provider notification_provider.INotificationClient, channelRateLimit int) *Worker {
+func New(logger *slog.Logger, deliveryRepo repository.IDeliveryRepository, outboxRepo repository.IOutboxRepository, queue rabbitmq.IClient, provider notification_provider.INotificationClient, rateLimiter ratelimit.Limiter, channelRateLimit int) *Worker {
 	if channelRateLimit <= 0 {
 		channelRateLimit = 100
 	}
 
 	return &Worker{
-		logger:        logger,
-		deliveryRepo:  deliveryRepo,
-		outboxRepo:    outboxRepo,
-		queue:         queue,
-		provider:      provider,
-		publisherTick: time.Second,
-		limiters: map[string]*rate.Limiter{
-			"sms":   rate.NewLimiter(rate.Limit(channelRateLimit), channelRateLimit),
-			"email": rate.NewLimiter(rate.Limit(channelRateLimit), channelRateLimit),
-			"push":  rate.NewLimiter(rate.Limit(channelRateLimit), channelRateLimit),
-		},
-		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
+		logger:           logger,
+		deliveryRepo:     deliveryRepo,
+		outboxRepo:       outboxRepo,
+		queue:            queue,
+		provider:         provider,
+		publisherTick:    time.Second,
+		rateLimiter:      rateLimiter,
+		channelRateLimit: channelRateLimit,
+		rng:              rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -279,15 +275,17 @@ func derefUUID(value *uuid.UUID) string {
 }
 
 func (w *Worker) waitForChannelRateLimit(ctx context.Context, channel string) error {
-	w.mu.Lock()
-	limiter, ok := w.limiters[channel]
-	if !ok {
-		limiter = rate.NewLimiter(rate.Limit(100), 100)
-		w.limiters[channel] = limiter
+	key := "rate:channel:" + channel
+	if err := w.rateLimiter.Wait(ctx, key, w.channelRateLimit); err != nil {
+		w.logger.Warn("rate limiter wait failed, proceeding without limit",
+			"channel", channel,
+			"error", err,
+		)
+		// Fail-open: Redis down olursa provider'a saldırma riski var ama
+		// notification'ı dropleyip queue'ya geri atmaktan iyidir.
+		// Production'da fail-closed yapılabilir veya local fallback eklenebilir.
 	}
-	w.mu.Unlock()
-
-	return limiter.Wait(ctx)
+	return nil
 }
 
 type retryDecision int

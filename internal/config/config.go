@@ -9,6 +9,7 @@ type Config struct {
 	HTTPPort             string
 	DatabaseURL          string
 	AMQPURL              string
+	RedisURL             string
 	ProviderURL          string
 	ProviderTimeout      string
 	ProviderMockResponse string
@@ -22,6 +23,7 @@ func Load() Config {
 		HTTPPort:             getEnv("HTTP_PORT", ""),
 		DatabaseURL:          getEnv("DATABASE_URL", ""),
 		AMQPURL:              getEnv("AMQP_URL", ""),
+		RedisURL:             getEnv("REDIS_URL", ""),
 		ProviderURL:          getEnv("PROVIDER_URL", ""),
 		ProviderTimeout:      getEnv("PROVIDER_TIMEOUT", ""),
 		ProviderMockResponse: getEnv("PROVIDER_MOCK_RESPONSE", ""),

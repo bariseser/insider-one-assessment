@@ -35,6 +35,28 @@ services:
       retries: 10
       start_period: 10s
 
+  redis:
+    image: redis:7-alpine
+    container_name: insider-one-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: insider-one-redisinsight
+    ports:
+      - "5540:5540"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - redisinsight_data:/data
+
   jaeger:
     image: jaegertracing/all-in-one:1.67.0
     container_name: insider-one-jaeger
@@ -116,6 +138,7 @@ services:
       HTTP_PORT: ":8080"
       DATABASE_URL: "postgres://postgres:postgres@postgres:5432/insider_one_assessment?sslmode=disable"
       AMQP_URL: "amqp://guest:guest@rabbitmq:5672/"
+      REDIS_URL: "redis:6379"
       PROVIDER_URL: "https://webhook.site/37eaaf61-d98a-4eeb-9ec0-a095794b527b"
       PROVIDER_TIMEOUT: "5s"
       CHANNEL_RATE_LIMIT: "100"
@@ -127,6 +150,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       migrate:
         condition: service_completed_successfully
       jaeger:
@@ -136,3 +161,4 @@ volumes:
   postgres_data:
   rabbitmq_data:
   pgadmin_data:
+  redisinsight_data:

@@ -10,6 +10,7 @@ import (
 	"insider-one-assessment/internal/config"
 	"insider-one-assessment/internal/logging"
 	"insider-one-assessment/internal/queue/rabbitmq"
+	"insider-one-assessment/internal/ratelimit"
 	"insider-one-assessment/internal/repository"
 	"insider-one-assessment/internal/tracing"
 	"insider-one-assessment/internal/worker"
@@ -17,6 +18,7 @@ import (
 	postgresdb "insider-one-assessment/pkgs/postgres"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -65,10 +67,21 @@ func main() {
 		}
 	}()
 
+	redisClient := redis.NewClient(&redis.Options{Addr: cfg.RedisURL})
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			log.Printf("close redis: %v", err)
+		}
+	}()
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		log.Fatalf("ping redis: %v", err)
+	}
+	rateLimiter := ratelimit.NewRedis(redisClient)
+
 	logger := logging.New(cfg.LogLevel)
 	repo := repository.NewNotificationRepository(dbClient)
 	providerClient := notification_provider.NewNotificationClient(cfg.ProviderURL, timeout, cfg.ProviderMockResponse)
-	w := worker.New(logger, repo, repo, queueClient, providerClient, cfg.ChannelRateLimit)
+	w := worker.New(logger, repo, repo, queueClient, providerClient, rateLimiter, cfg.ChannelRateLimit)
 
 	if err := w.Run(ctx); err != nil {
 		log.Fatalf("run worker: %v", err)
