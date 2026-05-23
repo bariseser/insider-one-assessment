@@ -129,6 +129,11 @@ func (w *Worker) publishReadyOutboxEvents(ctx context.Context) error {
 		if err := w.queue.Publish(publishCtx, routingKey, message); err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
+			w.logger.Error("publish failed after atomic claim — event marked but no RMQ message",
+				"event_id", event.ID,
+				"notification_id", message.NotificationID,
+				"error", err,
+			)
 			return err
 		}
 		w.logger.Info("published notification to queue",
@@ -136,10 +141,6 @@ func (w *Worker) publishReadyOutboxEvents(ctx context.Context) error {
 			"notification_id", message.NotificationID,
 			"routing_key", routingKey,
 		)
-
-		if err := w.outboxRepo.MarkOutboxEventPublished(ctx, event.ID, message.NotificationID, time.Now().UTC()); err != nil && !errors.Is(err, repository.ErrOutboxEventNotFound) {
-			return err
-		}
 	}
 
 	return nil
@@ -163,10 +164,10 @@ func (w *Worker) processDelivery(ctx context.Context, delivery amqp.Delivery) er
 	notification, err := w.deliveryRepo.StartProcessingNotification(ctx, message.NotificationID, time.Now().UTC())
 	if err != nil {
 		if errors.Is(err, repository.ErrNotificationNotReady) {
-			w.logger.Warn("notification not ready yet, requeueing delivery",
+			w.logger.Warn("notification not in queued state, dropping delivery",
 				"notification_id", message.NotificationID,
 			)
-			_ = delivery.Nack(false, true)
+			_ = delivery.Nack(false, false)
 			return nil
 		}
 		span.RecordError(err)
