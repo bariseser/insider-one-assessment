@@ -288,24 +288,36 @@ func (r *notificationRepository) CancelNotification(ctx context.Context, id stri
 }
 
 func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit int) ([]OutboxEvent, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("begin outbox tx: %w", err)
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	rows, err := tx.QueryContext(ctx, `
+	now := time.Now().UTC()
+	rows, err := r.db.QueryContext(ctx, `
+		WITH locked AS (
+			SELECT id, aggregate_id FROM outbox_events
+			WHERE published_at IS NULL AND available_at <= NOW()
+			ORDER BY available_at ASC, created_at ASC
+			FOR UPDATE SKIP LOCKED
+			LIMIT $1
+		),
+		marked_events AS (
+			UPDATE outbox_events o
+			SET published_at = $2
+			FROM locked
+			WHERE o.id = locked.id
+			RETURNING o.id, o.aggregate_type, o.aggregate_id, o.event_type,
+				o.payload, o.available_at, o.created_at
+		),
+		marked_notifs AS (
+			UPDATE notifications n
+			SET status = $3, updated_at = $2
+			FROM locked
+			WHERE n.id = locked.aggregate_id AND n.status = $4
+			RETURNING n.id
+		)
 		SELECT id, aggregate_type, aggregate_id, event_type, payload, available_at, created_at
-		FROM outbox_events
-		WHERE published_at IS NULL AND available_at <= NOW()
+		FROM marked_events
 		ORDER BY available_at ASC, created_at ASC
-		FOR UPDATE SKIP LOCKED
-		LIMIT $1
-	`, limit)
+	`, limit, now, model.StatusQueued, model.StatusPending)
 	if err != nil {
-		return nil, fmt.Errorf("select due outbox events: %w", err)
+		return nil, fmt.Errorf("claim outbox events: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -322,10 +334,6 @@ func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate outbox events: %w", err)
 	}
-	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit outbox tx: %w", err)
-	}
-
 	return events, nil
 }
 
