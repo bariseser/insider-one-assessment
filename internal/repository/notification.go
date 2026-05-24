@@ -110,6 +110,7 @@ func (r *notificationRepository) CreateNotification(ctx context.Context, idempot
 	}
 
 	if idempotencyKey != "" {
+		// UNIQUE constraint violation (23505) — RACE CONDITION!
 		if err := r.insertNotificationIdempotencyKey(ctx, tx, idempotencyKey, requestHash, notification.ID); err != nil {
 			if errors.Is(err, ErrIdempotencyConflict) {
 				notification, replayed, err := r.loadExistingNotification(ctx, tx, idempotencyKey, requestHash)
