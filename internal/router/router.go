@@ -28,12 +28,12 @@ func (r *Router) Handler() http.Handler {
 	mux.HandleFunc("GET /templates", r.templateHandler.HandleListTemplates)
 	mux.HandleFunc("GET /templates/{id}", r.templateHandler.HandleGetTemplate)
 	mux.HandleFunc("PATCH /templates/{id}", r.templateHandler.HandleUpdateTemplate)
-	mux.HandleFunc("POST /notifications", r.notificationHandler.HandleCreateNotification)
+	mux.HandleFunc("GET /batches/{id}", r.notificationHandler.HandleGetBatch)
 	mux.HandleFunc("POST /batches", r.notificationHandler.HandleCreateNotificationBatch)
 	mux.HandleFunc("GET /notifications", r.notificationHandler.HandleListNotifications)
 	mux.HandleFunc("GET /notifications/{id}", r.notificationHandler.HandleGetNotification)
+	mux.HandleFunc("POST /notifications", r.notificationHandler.HandleCreateNotification)
 	mux.HandleFunc("POST /notifications/{id}/cancel", r.notificationHandler.HandleCancelNotification)
-	mux.HandleFunc("GET /batches/{id}", r.notificationHandler.HandleGetBatch)
 
 	return mux
 }
