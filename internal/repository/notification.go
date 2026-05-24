@@ -290,6 +290,8 @@ func (r *notificationRepository) CancelNotification(ctx context.Context, id stri
 
 func (r *notificationRepository) ClaimDueOutboxEvents(ctx context.Context, limit int) ([]OutboxEvent, error) {
 	now := time.Now().UTC()
+
+	//atomic outbox claim: Race window: Commit ile MarkOutboxEventPublished
 	rows, err := r.db.QueryContext(ctx, `
 		WITH locked AS (
 			SELECT id, aggregate_id FROM outbox_events
