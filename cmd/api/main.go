@@ -13,8 +13,9 @@ import (
 	"insider-one-assessment/internal/tracing"
 	postgresdb "insider-one-assessment/pkgs/postgres"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "insider-one-assessment/docs"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 // @title Insider One Assessment Notification API
@@ -41,7 +42,7 @@ func main() {
 	}()
 
 	dbClient, err := postgresdb.NewClient(cfg.DatabaseURL, cfg.LogLevel == "debug", postgresdb.Options{
-		MaxOpenConns: 20,
+		MaxOpenConns: 20, // hard limit
 		MaxIdleConns: 5,
 	})
 	if err != nil {
